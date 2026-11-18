@@ -1,0 +1,20 @@
+{
+  "name": "typo-thief",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:yt": "node scripts/package-youtube.mjs",
+    "build:dict": "node scripts/build-dict.mjs",
+    "gen:content": "node scripts/generate-content.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}
