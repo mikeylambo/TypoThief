@@ -16,6 +16,68 @@ const MAX_LEN = 6;
 // Everyday base stems used by campaign levels/props whose Make-a-Word rank sits above 8000.
 const CAMPAIGN_WHITELIST = new Set(["clamp", "crate"]);
 
+// Common 2-letter verbs whose 5-letter -ing forms (being, doing, going) are regular inflections.
+const TWO_LETTER_ING_STEMS = new Set(["be", "do", "go"]);
+
+// Base stems missing from Make-a-Word's dictionary whose inflections (pends, pended) would otherwise leak.
+const EXTRA_INFLECTION_STEMS = new Set(["pend"]);
+
+// Comparative -er forms with doubled consonants not covered by general -er (to avoid stripping dinner/hammer/summer).
+const EXTRA_EXCLUDED_INFLECTIONS = new Set(["bigger", "hotter"]);
+
+// Strict family-friendly slur & profanity filter for YouTube Playables beyond Make-a-Word's blocklists.
+const EXTRA_PROFANITY_AND_SLURS = new Set([
+  "anus",
+  "ass",
+  "boner",
+  "boob",
+  "boobs",
+  "bugger",
+  "chink",
+  "coon",
+  "dildo",
+  "dyke",
+  "erotic",
+  "fag",
+  "faggot",
+  "fetish",
+  "gook",
+  "hooker",
+  "horny",
+  "kike",
+  "kkk",
+  "lesbo",
+  "nazi",
+  "nazis",
+  "nigga",
+  "nigger",
+  "paki",
+  "pimp",
+  "prick",
+  "pube",
+  "pubes",
+  "pubic",
+  "queer",
+  "rectum",
+  "retard",
+  "schlong",
+  "scrotum",
+  "semen",
+  "skank",
+  "smut",
+  "sperm",
+  "spic",
+  "spick",
+  "tranny",
+  "turd",
+  "twat",
+  "vulva",
+  "wank",
+  "wanker",
+  "wetback",
+  "yid",
+]);
+
 /**
  * Extract named entries from a ZIP buffer using its Central Directory.
  * Supports compression methods 0 (STORE) and 8 (DEFLATE).
@@ -91,17 +153,21 @@ function readZipEntries(zipBuffer, wantedNames) {
 function isInflection(word, stemSet) {
   const len = word.length;
 
+  if (EXTRA_EXCLUDED_INFLECTIONS.has(word)) {
+    return true;
+  }
+
   if (word.endsWith("ies") && len > 4 && stemSet.has(`${word.slice(0, -3)}y`)) {
     return true;
   }
-  if (word.endsWith("es") && len > 3 && !/(ss|us|is)$/.test(word)) {
+  if (word.endsWith("es") && len > 3 && !/(ss|is)$/.test(word)) {
     const stem2 = word.slice(0, -2);
     const stem1 = word.slice(0, -1);
     if (stemSet.has(stem2) || (stem1.endsWith("e") && stemSet.has(stem1))) {
       return true;
     }
   }
-  if (word.endsWith("s") && len > 3 && !/(ss|us|is)$/.test(word)) {
+  if (word.endsWith("s") && len > 3 && !/(ss|is)$/.test(word)) {
     if (stemSet.has(word.slice(0, -1))) {
       return true;
     }
@@ -110,22 +176,40 @@ function isInflection(word, stemSet) {
   if (word.endsWith("ied") && len > 4 && stemSet.has(`${word.slice(0, -3)}y`)) {
     return true;
   }
-  if (word.endsWith("ed") && len > 4) {
-    if (stemSet.has(word.slice(0, -2)) || stemSet.has(word.slice(0, -1))) {
+  if (word.endsWith("ed")) {
+    if (len === 4 && !word.endsWith("eed") && word !== "shed" && stemSet.has(word.slice(0, -1))) {
       return true;
     }
-    if (len > 5 && word[len - 3] === word[len - 4] && stemSet.has(word.slice(0, -3))) {
-      return true;
+    if (len > 4) {
+      if (stemSet.has(word.slice(0, -2)) || stemSet.has(word.slice(0, -1))) {
+        return true;
+      }
+      if (len > 5 && word[len - 3] === word[len - 4] && stemSet.has(word.slice(0, -3))) {
+        return true;
+      }
     }
   }
 
-  if (word.endsWith("ing") && len > 5) {
+  if (word.endsWith("ing")) {
     const stem3 = word.slice(0, -3);
-    if (stemSet.has(stem3) || stemSet.has(`${stem3}e`)) {
-      return true;
+    if (len === 5) {
+      if (TWO_LETTER_ING_STEMS.has(stem3)) {
+        return true;
+      }
+      if (word.endsWith("ying") && stemSet.has(`${word.slice(0, -4)}ie`)) {
+        return true;
+      }
+      if (word !== "thing" && stemSet.has(`${stem3}e`)) {
+        return true;
+      }
     }
-    if (len > 6 && word[len - 4] === word[len - 5] && stemSet.has(word.slice(0, -4))) {
-      return true;
+    if (len > 5) {
+      if (stemSet.has(stem3) || stemSet.has(`${stem3}e`)) {
+        return true;
+      }
+      if (len > 6 && word[len - 4] === word[len - 5] && stemSet.has(word.slice(0, -4))) {
+        return true;
+      }
     }
   }
 
@@ -175,9 +259,10 @@ function buildDictionary() {
   const excludedStems = new Set([
     ...profanity.map((w) => String(w).toLowerCase()),
     ...blocklist.map((w) => String(w).toLowerCase()),
+    ...EXTRA_PROFANITY_AND_SLURS,
   ]);
 
-  const stemSet = new Set(excludedStems);
+  const stemSet = new Set([...excludedStems, ...EXTRA_INFLECTION_STEMS]);
   for (const raw of rawWords) {
     stemSet.add(String(raw).toLowerCase());
   }

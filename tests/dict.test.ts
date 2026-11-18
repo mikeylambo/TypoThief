@@ -36,9 +36,51 @@ describe("cleaned 3-6 letter base dictionary", () => {
       "cried",
       "easier",
       "fastest",
+      "aged",
+      "died",
+      "lied",
+      "owed",
+      "sued",
+      "tied",
+      "used",
+      "aging",
+      "being",
+      "doing",
+      "dying",
+      "going",
+      "lying",
+      "owing",
+      "suing",
+      "tying",
+      "using",
+      "menus",
+      "thous",
+      "pends",
+      "pended",
+      "bigger",
+      "hotter",
     ];
     for (const word of excluded) {
       assert.equal(isValidWord(dict, word), false, `expected inflection '${word}' to be excluded`);
+    }
+  });
+
+  it("excludes slurs and profanity for family-friendly Playables compliance", () => {
+    const dict = loadDict();
+    const blocked = [
+      "fag",
+      "faggot",
+      "nigger",
+      "ass",
+      "pimp",
+      "prick",
+      "horny",
+      "bugger",
+      "queer",
+      "sperm",
+    ];
+    for (const word of blocked) {
+      assert.equal(isValidWord(dict, word), false, `expected slur/profanity '${word}' to be excluded`);
     }
   });
 
@@ -68,7 +110,30 @@ describe("cleaned 3-6 letter base dictionary", () => {
       "ice",
       "rice",
       "dinner",
+      "hammer",
+      "summer",
       "priest",
+      "feed",
+      "seed",
+      "weed",
+      "deed",
+      "need",
+      "reed",
+      "shed",
+      "bred",
+      "fled",
+      "sped",
+      "thing",
+      "bring",
+      "sting",
+      "swing",
+      "plus",
+      "thus",
+      "focus",
+      "bonus",
+      "virus",
+      "minus",
+      "status",
     ];
     for (const word of required) {
       assert.equal(isValidWord(dict, word), true, `expected base stem '${word}' to be present`);
