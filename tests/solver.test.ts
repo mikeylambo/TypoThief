@@ -148,8 +148,7 @@ describe("BFS solver & trap analyzer", () => {
     assert.equal(res.deadEndFirstSteals, 1);
 
     // Unsolvable-first-steal trap: stealing 'B' -> RAMP leaves 'B' stranded with no drop back
-    // if only 'BRAMP' is absent and 'RAMP' has no valid drops
-    const oneWayDict = loadDict(["BRAMP", "RAMP", "CLAM", "LAM", "RAM", "CRAM"]);
+    // when "BRAMP" is absent from dict so dropping 'B' back onto RAMP is rejected.
     const oneWayLevel: LevelDef = {
       id: 93,
       chapter: 2,

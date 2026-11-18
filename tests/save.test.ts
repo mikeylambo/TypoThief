@@ -104,6 +104,16 @@ describe("versioned save store and progression", () => {
     save = recordDailyClear(save, "2026-02-03", 2);
     assert.equal(save.dailyStreak, 1);
     assert.equal(save.lastDailyDate, "2026-02-03");
+
+    // Same-day replay when recovered dailyStreak is 0 floors dailyStreak at 1
+    const zeroStreakSameDay: SaveData = {
+      ...save,
+      dailyStreak: 0,
+      lastDailyDate: "2026-02-03",
+    };
+    const replayed = recordDailyClear(zeroStreakSameDay, "2026-02-03", 3);
+    assert.equal(replayed.dailyStreak, 1);
+    assert.equal(replayed.dailyCleared["2026-02-03"], 3);
   });
 
   it("recovers cleanly from null, undefined, malformed JSON, wrong schemaVersion, and corrupted fields", () => {
@@ -185,6 +195,25 @@ describe("versioned save store and progression", () => {
       rivets: true,
       twoSlot: false,
     });
+
+    // Reconciles highestUnlocked from recovered levels when highestUnlocked is corrupted or lower
+    const reconciled = parseSaveWithRecovery({
+      schemaVersion: 1,
+      highestUnlocked: -1,
+      levels: {
+        "6": { stars: 3, bestMoves: 8 },
+      },
+    });
+    assert.equal(reconciled.highestUnlocked, 7);
+
+    const reconciledCap = parseSaveWithRecovery({
+      schemaVersion: 1,
+      highestUnlocked: 5,
+      levels: {
+        "18": { stars: 2, bestMoves: 9 },
+      },
+    });
+    assert.equal(reconciledCap.highestUnlocked, 18);
   });
 
   it("returns 1 on fresh save, lowest uncompleted unlocked level on return, and 0 after level 18 is cleared", () => {

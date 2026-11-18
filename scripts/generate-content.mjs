@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadDict } from "../src/sim/dict.ts";
+import { createGameState, dropLetter, stealLetter } from "../src/sim/rules.ts";
 import { solveBoard } from "../src/sim/solver.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -214,6 +215,16 @@ const CAMPAIGN_WORD_AVOID = new Set([
   "sin",
   "dam",
   "gay",
+  "pee",
+  "poop",
+  "booty",
+  "weed",
+  "bra",
+  "scum",
+  "suck",
+  "bomb",
+  "shoot",
+  "stab",
 ]);
 
 function isCleanCampaignPairs(pairs) {
@@ -222,9 +233,31 @@ function isCleanCampaignPairs(pairs) {
   );
 }
 
+function isCleanSolutionPath(lvl, solutionPath, dict) {
+  let state = createGameState(lvl);
+  for (const prop of state.props) {
+    if (
+      CAMPAIGN_WORD_AVOID.has(prop.word.toLowerCase()) ||
+      CAMPAIGN_WORD_AVOID.has(prop.goal.toLowerCase())
+    ) {
+      return false;
+    }
+  }
+  for (const move of solutionPath) {
+    state =
+      move.kind === "steal"
+        ? stealLetter(state, move.propIdx, move.charIdx, dict)
+        : dropLetter(state, move.propIdx, move.pos, move.slotIdx, dict);
+    if (CAMPAIGN_WORD_AVOID.has(state.props[move.propIdx].word.toLowerCase())) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // --- Sampling primitives ---
 
-function samplePar4Cap1(graph, rand, numProps) {
+function samplePar4Cap1(graph, rand) {
   const pick = (arr) => arr[Math.floor(rand() * arr.length)];
   const b1 = pick(graph.bridgesDS);
   const sList = graph.stealsByCh.get(b1.cIn);
@@ -232,37 +265,11 @@ function samplePar4Cap1(graph, rand, numProps) {
   if (!sList?.length || !dList?.length) return null;
   const s0 = pick(sList);
   const d2 = pick(dList);
-  if (numProps === 3) {
-    return [
-      [s0.start, s0.goal],
-      [b1.start, b1.goal],
-      [d2.start, d2.goal],
-    ];
-  }
-  // 4 props: add an independent steal/drop pair or decoy bridge? Better: 1 SD + 1 DS + 1 steal + 1 drop or 1 decoy transform
-  // Keep all 4 props active by sampling 2 pairs of (steal, drop) or (steal -> DS -> drop) + active 4th? Wait: 2 independent steal+drop pairs = 4 moves!
-  const s1 = pick(graph.stealsByCh.get(pick(["e", "s", "t", "r", "a", "n", "l", "d"])) ?? sList);
-  const d3List = graph.dropsByCh.get(s1.ch);
-  if (!d3List?.length) return null;
-  const d3 = pick(d3List);
-  if (rand() < 0.5) {
-    const b0 = pick(graph.bridgesSD);
-    const dsList = (graph.bridgesDSByIn.get(b0.cOut) || []).filter((x) => x.cOut === b0.cIn);
-    if (!dsList.length) return null;
-    const ds = pick(dsList);
-    return [
-      [b0.start, b0.goal],
-      [ds.start, ds.goal],
-      [s1.start, s1.goal],
-      [d3.start, d3.goal],
-    ];
-  }
   return [
     [s0.start, s0.goal],
     [b1.start, b1.goal],
     [d2.start, d2.goal],
-    [s1.start, s1.goal],
-  ].slice(0, 3); // wait: 4-prop par=4 uses two 2-move exchanges
+  ];
 }
 
 function samplePar4FourProps(graph, rand) {
@@ -465,7 +472,7 @@ function tryAttachRivets(lvl, graph, dict, baseRes, allowSameGoalProp) {
   return null;
 }
 
-function sampleRivetedDeadlock(graph, rand, numProps, targetPars) {
+function sampleRivetedDeadlock(graph, rand, numProps) {
   const pick = (arr) => arr[Math.floor(rand() * arr.length)];
   const b0 = pick(graph.bridgesDS);
   const b1List = (graph.bridgesDSByIn.get(b0.cOut) || []).filter((x) => x.cOut === b0.cIn);
@@ -491,7 +498,7 @@ function sampleRivetedDeadlock(graph, rand, numProps, targetPars) {
           [l2.start, l2.start],
         ];
   if (!hasUniqueStartWords(pairs)) return null;
-  return { pairs, preferPropIdx: 2, preferCharIdx: l1.charIdx };
+  return pairs;
 }
 
 function generateCampaignLevels(graph, dict, usedSignatures) {
@@ -574,6 +581,7 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
         }
         const finalSig = boardSignature(finalLvl.pocketCap, finalLvl.props);
         if (usedSignatures.has(finalSig)) continue;
+        if (!isCleanSolutionPath(finalLvl, finalRes.path, dict)) continue;
         usedSignatures.add(finalSig);
         return { ...finalLvl, id: spec.id, par: finalRes.par };
       }
@@ -594,11 +602,13 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
           if (cap1R.solvable && cap1R.par <= attached.res.par) continue;
           const finalSig = boardSignature(attached.level.pocketCap, attached.level.props);
           if (usedSignatures.has(finalSig)) continue;
+          if (!isCleanSolutionPath(attached.level, attached.res.path, dict)) continue;
           usedSignatures.add(finalSig);
           return { ...attached.level, id: spec.id, par: attached.res.par };
         }
       }
 
+      if (!isCleanSolutionPath(lvl, base.path, dict)) continue;
       usedSignatures.add(sig);
       return { ...lvl, id: spec.id, par: base.par };
     }
@@ -614,7 +624,7 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
       targetPar: 4,
       title: "Bridge Job",
       sample: () => {
-        const p = samplePar4Cap1(graph, rand, 3);
+        const p = samplePar4Cap1(graph, rand);
         return p && hasAllTransform(p) ? p : null;
       },
     }),
@@ -677,7 +687,7 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
       targetPar: 4,
       title: "Bolted Frame",
       sample: () => {
-        const p = samplePar4Cap1(graph, rand, 3);
+        const p = samplePar4Cap1(graph, rand);
         return p && hasAllTransform(p) ? p : null;
       },
     }),
@@ -691,7 +701,7 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
       targetPar: 6,
       title: "Rivet Bypass",
       requireBreaksOptimal: true,
-      sample: () => sampleRivetedDeadlock(graph, rand, 4, [6]),
+      sample: () => sampleRivetedDeadlock(graph, rand, 4),
     }),
   );
 
@@ -717,7 +727,7 @@ function generateCampaignLevels(graph, dict, usedSignatures) {
       targetPar: 6,
       title: "Iron Gallery",
       requireBreaksOptimal: true,
-      sample: () => sampleRivetedDeadlock(graph, rand, 4, [6]),
+      sample: () => sampleRivetedDeadlock(graph, rand, 4),
     }),
   );
 
@@ -875,14 +885,18 @@ function generateDailyBank(graph, dict, usedSignatures) {
     const pairs =
       wantPar === 4
         ? numProps === 3
-          ? samplePar4Cap1(graph, rand, 3)
+          ? samplePar4Cap1(graph, rand)
           : samplePar4FourProps(graph, rand)
         : samplePar6Cap1(graph, rand, numProps);
-    if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs)) return null;
+    if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs) || !isCleanCampaignPairs(pairs)) {
+      return null;
+    }
     const frameIndices = pickDistinctFrameIndices(pairs.length, rand);
     const lvl = makeLevel(1, 1, "Daily", pairs, frameIndices, [], "mon-tue");
     const res = solveBoard(lvl, dict, SOLVER_MAX_NODES);
-    if (!res.solvable || res.par < 4 || res.par > 6) return null;
+    if (!res.solvable || res.par < 4 || res.par > 6 || !isCleanSolutionPath(lvl, res.path, dict)) {
+      return null;
+    }
     return { chapter: 1, pocketCap: 1, par: res.par, props: lvl.props, frameIndices };
   });
 
@@ -892,18 +906,17 @@ function generateDailyBank(graph, dict, usedSignatures) {
     const useDeadlock = wantPar === 6 && idx % 4 === 1;
     let pairs;
     if (useDeadlock) {
-      const d = sampleRivetedDeadlock(graph, rand, 4, [6]);
-      if (!d) return null;
-      pairs = d.pairs;
+      pairs = sampleRivetedDeadlock(graph, rand, 4);
+      if (!pairs) return null;
     } else {
       const numProps = wantPar === 4 ? 3 : idx % 3 === 0 ? 3 : 4;
       pairs =
         wantPar === 4
-          ? samplePar4Cap1(graph, rand, 3)
+          ? samplePar4Cap1(graph, rand)
           : samplePar6Cap1(graph, rand, numProps);
       if (!pairs || !hasAllTransform(pairs)) return null;
     }
-    if (!hasUniqueStartWords(pairs)) return null;
+    if (!hasUniqueStartWords(pairs) || !isCleanCampaignPairs(pairs)) return null;
     const frameIndices = pickDistinctFrameIndices(pairs.length, rand);
     const lvl = makeLevel(2, 1, "Daily", pairs, frameIndices, [], "wed-thu");
     const base = solveBoard(lvl, dict, SOLVER_MAX_NODES);
@@ -912,6 +925,7 @@ function generateDailyBank(graph, dict, usedSignatures) {
     if (!attached) return null;
     if (attached.res.par < 4 || attached.res.par > 6) return null;
     if (useDeadlock && !attached.breaksOptimal && !attached.increasesPar) return null;
+    if (!isCleanSolutionPath(attached.level, attached.res.path, dict)) return null;
     return {
       chapter: 2,
       pocketCap: 1,
@@ -928,7 +942,9 @@ function generateDailyBank(graph, dict, usedSignatures) {
       numProps === 4 && idx % 4 === 1
         ? sampleCap2Par6FourProps(graph, rand)
         : sampleCap2Cycle(graph, rand, numProps);
-    if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs)) return null;
+    if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs) || !isCleanCampaignPairs(pairs)) {
+      return null;
+    }
     const frameIndices = pickDistinctFrameIndices(pairs.length, rand);
     const lvl = makeLevel(3, 2, "Daily", pairs, frameIndices, [], "fri-sat");
     const res2 = solveBoard(lvl, dict, SOLVER_FAST_NODES);
@@ -937,7 +953,9 @@ function generateDailyBank(graph, dict, usedSignatures) {
     const res1 = solveBoard({ ...lvl, pocketCap: 1 }, dict, SOLVER_FAST_NODES);
     if (res1.solvable && res1.par <= res2.par) return null;
     const exact = solveBoard(lvl, dict, SOLVER_MAX_NODES);
-    if (!exact.solvable || exact.par !== res2.par) return null;
+    if (!exact.solvable || exact.par !== res2.par || !isCleanSolutionPath(lvl, exact.path, dict)) {
+      return null;
+    }
     return { chapter: 3, pocketCap: 2, par: exact.par, props: lvl.props, frameIndices };
   });
 
@@ -949,7 +967,9 @@ function generateDailyBank(graph, dict, usedSignatures) {
         idx % 4 === 1
           ? sampleCap2Par6FourProps(graph, rand)
           : sampleCap2Cycle(graph, rand, 4);
-      if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs)) return null;
+      if (!pairs || !hasUniqueStartWords(pairs) || !hasAllTransform(pairs) || !isCleanCampaignPairs(pairs)) {
+        return null;
+      }
       const frameIndices = pickDistinctFrameIndices(4, rand);
       const lvl = makeLevel(3, 2, "Daily", pairs, frameIndices, [], "sun");
       const res2 = solveBoard(lvl, dict, SOLVER_FAST_NODES);
@@ -958,20 +978,21 @@ function generateDailyBank(graph, dict, usedSignatures) {
       const res1 = solveBoard({ ...lvl, pocketCap: 1 }, dict, SOLVER_FAST_NODES);
       if (res1.solvable && res1.par <= res2.par) return null;
       const exact = solveBoard(lvl, dict, SOLVER_MAX_NODES);
-      if (!exact.solvable || exact.par !== res2.par) return null;
+      if (!exact.solvable || exact.par !== res2.par || !isCleanSolutionPath(lvl, exact.path, dict)) {
+        return null;
+      }
       return { chapter: 3, pocketCap: 2, par: exact.par, props: lvl.props, frameIndices };
     }
     const useDeadlock = idx % 4 === 0;
     let pairs;
     if (useDeadlock) {
-      const d = sampleRivetedDeadlock(graph, rand, 4, [6, 8]);
-      if (!d) return null;
-      pairs = d.pairs;
+      pairs = sampleRivetedDeadlock(graph, rand, 4);
+      if (!pairs) return null;
     } else {
       pairs = idx % 4 === 2 ? samplePar8Cap1(graph, rand) : samplePar6Cap1(graph, rand, 4);
       if (!pairs || !hasAllTransform(pairs)) return null;
     }
-    if (!hasUniqueStartWords(pairs)) return null;
+    if (!hasUniqueStartWords(pairs) || !isCleanCampaignPairs(pairs)) return null;
     const frameIndices = pickDistinctFrameIndices(4, rand);
     const lvl = makeLevel(2, 1, "Daily", pairs, frameIndices, [], "sun");
     const base = solveBoard(lvl, dict, SOLVER_MAX_NODES);
@@ -980,6 +1001,7 @@ function generateDailyBank(graph, dict, usedSignatures) {
     if (!attached) return null;
     if (attached.res.par < 6 || attached.res.par > 8) return null;
     if (useDeadlock && !attached.breaksOptimal && !attached.increasesPar) return null;
+    if (!isCleanSolutionPath(attached.level, attached.res.path, dict)) return null;
     return {
       chapter: 2,
       pocketCap: 1,

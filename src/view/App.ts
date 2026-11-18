@@ -14,6 +14,7 @@ import type { PlatformAdapter } from "../platform/index.ts";
 import { pickDailyPuzzle } from "../sim/daily.ts";
 import { loadDict } from "../sim/dict.ts";
 import {
+  applyHintSelection,
   canDrop,
   canSteal,
   computeStars,
@@ -377,27 +378,13 @@ export class App {
     if (this.winStars !== null || isSolved(this.state)) return;
 
     const move = getHintMove(this.state, this.dict);
-    let nextState: GameState = { ...this.state, usedHint: true };
-
-    if (!move) {
-      this.state = nextState;
-      this.hintMove = null;
-      this.render();
-      this.boardView.showFeedback("No valid path from here — Undo or Reset");
-      return;
-    }
-
-    if (move.kind === "drop") {
-      nextState = {
-        ...nextState,
-        dropMode: true,
-        activeSlot: move.slotIdx,
-      };
-    }
-
-    this.state = nextState;
+    this.state = applyHintSelection(this.state, move);
     this.hintMove = move;
     this.render();
+
+    if (!move) {
+      this.boardView.showFeedback("No hint available — try Undo or Reset");
+    }
   }
 
   private handleToggleAudio(): void {

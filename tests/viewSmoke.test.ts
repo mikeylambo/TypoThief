@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import { CAMPAIGN_LEVELS } from "../src/content/levels.ts";
 import { defaultSave, isDailyUnlocked, recordLevelClear } from "../src/meta/save.ts";
 import { loadDict } from "../src/sim/dict.ts";
-import { createGameState, stealLetter } from "../src/sim/rules.ts";
+import {
+  applyHintSelection,
+  createGameState,
+  stealLetter,
+  toggleDropMode,
+} from "../src/sim/rules.ts";
 import type { LevelDef } from "../src/sim/types.ts";
 import {
   DragClickGuard,
@@ -163,5 +168,52 @@ describe("BoardView pure UI helpers", () => {
     guard.markDragging();
     guard.reset();
     assert.equal(guard.consumeClick(), false);
+  });
+
+  it("applyHintSelection flips Ch3 1/2 dropMode back to false on steal hint and preserves !usedHint when move is null", () => {
+    const ch3Level: LevelDef = {
+      id: 14,
+      chapter: 3,
+      title: "Twin Heist",
+      par: 6,
+      pocketCap: 2,
+      props: [
+        { id: "p1", label: "Lamp", frame: "lamp", start: "CLAP", goal: "FLAP" },
+        { id: "p2", label: "Crate", frame: "crate", start: "FLOCK", goal: "CLOCK" },
+      ],
+    };
+    const dict = loadDict(["CLAP", "LAP", "FLAP", "FLOCK", "LOCK", "CLOCK"]);
+    let state = createGameState(ch3Level);
+    state = stealLetter(state, 0, 0, dict); // pocket ["C"] (1/2)
+    state = toggleDropMode(state, 0);
+    assert.equal(state.dropMode, true);
+    assert.equal(state.usedHint, false);
+
+    // Hint returns a steal move -> exits dropMode, resets activeSlot, sets usedHint
+    const afterStealHint = applyHintSelection(state, {
+      kind: "steal",
+      propIdx: 1,
+      charIdx: 0,
+    });
+    assert.equal(afterStealHint.dropMode, false);
+    assert.equal(afterStealHint.activeSlot, 0);
+    assert.equal(afterStealHint.usedHint, true);
+
+    // Hint returns a drop move -> enters dropMode on move.slotIdx and sets usedHint
+    const afterDropHint = applyHintSelection(afterStealHint, {
+      kind: "drop",
+      propIdx: 0,
+      pos: 0,
+      slotIdx: 1,
+    });
+    assert.equal(afterDropHint.dropMode, true);
+    assert.equal(afterDropHint.activeSlot, 1);
+    assert.equal(afterDropHint.usedHint, true);
+
+    // Hint returns null -> leaves usedHint false and state unchanged
+    const afterNullHint = applyHintSelection(state, null);
+    assert.equal(afterNullHint.usedHint, false);
+    assert.equal(afterNullHint.dropMode, true);
+    assert.equal(afterNullHint, state);
   });
 });

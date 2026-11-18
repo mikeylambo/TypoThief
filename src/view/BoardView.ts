@@ -298,6 +298,7 @@ export class BoardView {
   }
 
   showFeedback(message: string, propIdx?: number, charIdx?: number): void {
+    this.clearDropSideMarkers();
     if (this.toastTimer !== null) {
       clearTimeout(this.toastTimer);
     }
@@ -335,6 +336,14 @@ export class BoardView {
       this.toastTimer = null;
     }
     this.toastEl.hidden = true;
+  }
+
+  private clearDropSideMarkers(): void {
+    for (const row of this.tileElsByProp) {
+      for (const tile of row) {
+        delete tile.dataset.dropSide;
+      }
+    }
   }
 
   private renderTwistCallout(twist: { rivets: boolean; twoSlot: boolean }): void {
@@ -514,6 +523,18 @@ export class BoardView {
           delete btn.dataset.dropSide;
         });
 
+        btn.addEventListener("pointerup", () => {
+          delete btn.dataset.dropSide;
+        });
+
+        btn.addEventListener("pointercancel", () => {
+          delete btn.dataset.dropSide;
+        });
+
+        btn.addEventListener("blur", () => {
+          delete btn.dataset.dropSide;
+        });
+
         btn.addEventListener("keydown", (e) => {
           if (!this.lastCtx?.state.dropMode) return;
           if (e.key === "ArrowLeft") {
@@ -537,6 +558,7 @@ export class BoardView {
               ? charIdx + 1
               : charIdx
             : resolveHalfTileDropPos(charIdx, e.clientX, rect.left, rect.width);
+          delete btn.dataset.dropSide;
           this.handlers.onDrop(propIdx, pos, current.activeSlot);
         });
 

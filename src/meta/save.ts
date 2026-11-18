@@ -165,13 +165,27 @@ export function parseSaveWithRecovery(raw: unknown): SaveData {
 
   const base = defaultSave();
 
-  const highestUnlocked =
+  const levels = recoverLevels(parsed.levels);
+  let maxCleared = 0;
+  for (const key of Object.keys(levels)) {
+    const id = Number(key);
+    if (id > maxCleared) {
+      maxCleared = id;
+    }
+  }
+
+  const parsedHighestUnlocked =
     typeof parsed.highestUnlocked === "number" &&
     Number.isInteger(parsed.highestUnlocked) &&
     parsed.highestUnlocked >= 1 &&
     parsed.highestUnlocked <= MAX_CAMPAIGN_LEVEL
       ? parsed.highestUnlocked
       : base.highestUnlocked;
+
+  const highestUnlocked = Math.max(
+    parsedHighestUnlocked,
+    Math.min(MAX_CAMPAIGN_LEVEL, maxCleared + 1),
+  );
 
   const dailyStreak =
     typeof parsed.dailyStreak === "number" &&
@@ -187,7 +201,7 @@ export function parseSaveWithRecovery(raw: unknown): SaveData {
   return {
     schemaVersion: SAVE_SCHEMA,
     highestUnlocked,
-    levels: recoverLevels(parsed.levels),
+    levels,
     dailyCleared: recoverDailyCleared(parsed.dailyCleared),
     dailyStreak,
     lastDailyDate,
@@ -268,7 +282,7 @@ export function recordDailyClear(
   let nextStreak: number;
   let nextLastDate: string;
   if (save.lastDailyDate === utcDate) {
-    nextStreak = save.dailyStreak;
+    nextStreak = Math.max(1, save.dailyStreak);
     nextLastDate = save.lastDailyDate;
   } else if (isConsecutiveUtcDay(save.lastDailyDate, utcDate)) {
     nextStreak = save.dailyStreak + 1;

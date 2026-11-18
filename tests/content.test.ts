@@ -3,8 +3,62 @@ import assert from "node:assert/strict";
 import { CAMPAIGN_LEVELS } from "../src/content/levels.ts";
 import { DAILY_BANK } from "../src/content/dailyBank.ts";
 import { isValidWord, loadDict } from "../src/sim/dict.ts";
+import { createGameState, dropLetter, stealLetter } from "../src/sim/rules.ts";
 import { solveBoard } from "../src/sim/solver.ts";
-import type { DailyTier, LevelDef } from "../src/sim/types.ts";
+import type { DailyTier, LevelDef, Move } from "../src/sim/types.ts";
+
+const AVOIDED_WORDS = new Set([
+  "drug",
+  "kill",
+  "fart",
+  "dead",
+  "hell",
+  "sin",
+  "dam",
+  "gay",
+  "pee",
+  "poop",
+  "booty",
+  "weed",
+  "bra",
+  "scum",
+  "suck",
+  "bomb",
+  "shoot",
+  "stab",
+]);
+
+function assertFamilyFriendlyLevel(
+  level: LevelDef,
+  solutionPath: readonly Move[],
+  dict: Set<string>,
+): void {
+  for (const prop of level.props) {
+    assert.equal(
+      AVOIDED_WORDS.has(prop.start.toLowerCase()),
+      false,
+      `Level ${level.id} start '${prop.start}' is in avoided list`,
+    );
+    assert.equal(
+      AVOIDED_WORDS.has(prop.goal.toLowerCase()),
+      false,
+      `Level ${level.id} goal '${prop.goal}' is in avoided list`,
+    );
+  }
+  let state = createGameState(level);
+  for (const move of solutionPath) {
+    state =
+      move.kind === "steal"
+        ? stealLetter(state, move.propIdx, move.charIdx, dict)
+        : dropLetter(state, move.propIdx, move.pos, move.slotIdx, dict);
+    const word = state.props[move.propIdx].word.toLowerCase();
+    assert.equal(
+      AVOIDED_WORDS.has(word),
+      false,
+      `Level ${level.id} intermediate word '${word}' is in avoided list`,
+    );
+  }
+}
 
 const VALID_FRAMES = new Set([
   "safe",
@@ -122,6 +176,7 @@ describe("Campaign 18 levels & 365+ Daily Heist bank", () => {
         level.par,
         `Campaign level ${level.id} par mismatch: declared ${level.par}, solved ${result.par}`,
       );
+      assertFamilyFriendlyLevel(level, result.path, dict);
 
       if (level.id >= 3) {
         assert.ok(
@@ -207,6 +262,7 @@ describe("Campaign 18 levels & 365+ Daily Heist bank", () => {
         level.par,
         `Daily level ${level.id} (${level.tier}) par mismatch: declared ${level.par}, solved ${result.par}`,
       );
+      assertFamilyFriendlyLevel(level, result.path, dict);
 
       if (level.tier !== "mon-tue") {
         assert.ok(

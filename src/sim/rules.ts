@@ -1,5 +1,5 @@
 import { isValidWord } from "./dict.ts";
-import type { GameState, LevelDef, MoveCheck, PropState, Snapshot } from "./types.ts";
+import type { GameState, LevelDef, Move, MoveCheck, PropState, Snapshot } from "./types.ts";
 
 const MIN_WORD_LEN = 3;
 const MAX_WORD_LEN = 6;
@@ -295,6 +295,29 @@ export function isSolved(state: GameState): boolean {
   return state.props.every(
     (prop) => prop.word.toLowerCase() === prop.goal.toLowerCase(),
   );
+}
+
+/**
+ * Apply hint selection mode and hint-usage flag without mutating board tiles.
+ */
+export function applyHintSelection(state: GameState, move: Move | null): GameState {
+  if (!move) {
+    return state;
+  }
+  if (move.kind === "drop") {
+    return {
+      ...state,
+      usedHint: true,
+      dropMode: true,
+      activeSlot: move.slotIdx,
+    };
+  }
+  return {
+    ...state,
+    usedHint: true,
+    dropMode: false,
+    activeSlot: 0,
+  };
 }
 
 /**

@@ -102,7 +102,7 @@ export class YouTubeAdapter implements PlatformAdapter {
       return;
     }
     this.firstFrameSent = true;
-    g.game.firstFrameReady();
+    g.game?.firstFrameReady?.();
   }
 
   gameReady(): void {
@@ -115,7 +115,7 @@ export class YouTubeAdapter implements PlatformAdapter {
       return;
     }
     this.gameReadySent = true;
-    g.game.gameReady();
+    g.game?.gameReady?.();
   }
 
   language(): string {
@@ -158,7 +158,7 @@ export class YouTubeAdapter implements PlatformAdapter {
       return;
     }
     try {
-      await g.game.saveData(JSON.stringify(data));
+      await g.game?.saveData?.(JSON.stringify(data));
     } catch {
       // Ignore save failures in restricted environments.
     }
@@ -170,7 +170,7 @@ export class YouTubeAdapter implements PlatformAdapter {
       return this.fallback.load<T>();
     }
     try {
-      const raw = await g.game.loadData();
+      const raw = await g.game?.loadData?.();
       if (!raw) {
         return null;
       }
@@ -187,7 +187,7 @@ export class YouTubeAdapter implements PlatformAdapter {
       return;
     }
     const value = Number.isFinite(score) ? Math.max(0, Math.floor(score)) : 0;
-    g.engagement?.sendScore({ value })?.catch(() => {});
+    g.engagement?.sendScore?.({ value })?.catch?.(() => {});
   }
 
   async rewarded(slot: string): Promise<boolean> {

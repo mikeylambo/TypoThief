@@ -138,31 +138,31 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Lamp",
-        "frame": "lamp",
-        "start": "STAB",
-        "goal": "TAB"
+        "label": "Laser",
+        "frame": "laser",
+        "start": "BEND",
+        "goal": "BED"
       },
       {
         "id": "p2",
-        "label": "Crate",
-        "frame": "crate",
-        "start": "PORT",
-        "goal": "SORT"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "ONE",
+        "goal": "NON"
       },
       {
         "id": "p3",
         "label": "Trophy",
         "frame": "trophy",
-        "start": "SEND",
-        "goal": "SPED"
+        "start": "SPIN",
+        "goal": "SINE"
       },
       {
         "id": "p4",
-        "label": "Laser",
-        "frame": "laser",
-        "start": "DOE",
-        "goal": "DONE"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "AID",
+        "goal": "PAID"
       }
     ]
   },
@@ -177,29 +177,29 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
         "id": "p1",
         "label": "Crate",
         "frame": "crate",
-        "start": "SPIT",
-        "goal": "SLIT"
+        "start": "SCARY",
+        "goal": "SCARF"
       },
       {
         "id": "p2",
-        "label": "Canvas",
-        "frame": "art",
-        "start": "SLIT",
-        "goal": "SPIT"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "THE",
+        "goal": "HEY"
       },
       {
         "id": "p3",
-        "label": "Trophy",
-        "frame": "trophy",
-        "start": "AMP",
-        "goal": "LAP"
+        "label": "Canvas",
+        "frame": "art",
+        "start": "FLEE",
+        "goal": "FEET"
       },
       {
         "id": "p4",
-        "label": "Locker",
-        "frame": "locker",
-        "start": "CLAP",
-        "goal": "CAMP"
+        "label": "Safe",
+        "frame": "safe",
+        "start": "FIGHT",
+        "goal": "LIGHT"
       }
     ]
   },
@@ -212,27 +212,27 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Canvas",
-        "frame": "art",
-        "start": "SLOT",
-        "goal": "LOT"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "BREACH",
+        "goal": "BEACH",
+        "rivets": [
+          0
+        ]
       },
       {
         "id": "p2",
         "label": "Crate",
         "frame": "crate",
-        "start": "TUCK",
-        "goal": "SUCK"
+        "start": "BUSH",
+        "goal": "RUSH"
       },
       {
         "id": "p3",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "FLEE",
-        "goal": "FLEET",
-        "rivets": [
-          0
-        ]
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "ARE",
+        "goal": "BARE"
       }
     ]
   },
@@ -245,34 +245,34 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Trophy",
-        "frame": "trophy",
-        "start": "RED",
-        "goal": "END"
+        "label": "Laser",
+        "frame": "laser",
+        "start": "PUT",
+        "goal": "PUN"
       },
       {
         "id": "p2",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "BONE",
-        "goal": "BORE"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "OWN",
+        "goal": "TOW"
       },
       {
         "id": "p3",
-        "label": "Clock",
-        "frame": "clock",
-        "start": "LINE",
-        "goal": "LINE",
+        "label": "Safe",
+        "frame": "safe",
+        "start": "SKIN",
+        "goal": "SKIN",
         "rivets": [
-          2
+          3
         ]
       },
       {
         "id": "p4",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "HAVEN",
-        "goal": "HAVEN"
+        "label": "Canvas",
+        "frame": "art",
+        "start": "RANG",
+        "goal": "RANG"
       }
     ]
   },
@@ -285,27 +285,27 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Laser",
-        "frame": "laser",
-        "start": "SHOVE",
-        "goal": "SHORE"
-      },
-      {
-        "id": "p2",
         "label": "Watchdog",
         "frame": "dog",
-        "start": "SEEN",
-        "goal": "EVEN",
+        "start": "SPEED",
+        "goal": "SPEND",
         "rivets": [
-          3
+          2
         ]
       },
       {
+        "id": "p2",
+        "label": "Trophy",
+        "frame": "trophy",
+        "start": "BRED",
+        "goal": "REED"
+      },
+      {
         "id": "p3",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "TRAY",
-        "goal": "STAY"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "END",
+        "goal": "BED"
       }
     ]
   },
@@ -318,34 +318,34 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Canvas",
-        "frame": "art",
-        "start": "HAT",
-        "goal": "ART"
+        "label": "Crate",
+        "frame": "crate",
+        "start": "SIT",
+        "goal": "PIT"
       },
       {
         "id": "p2",
-        "label": "Laser",
-        "frame": "laser",
-        "start": "SORT",
-        "goal": "SHOT"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "GAP",
+        "goal": "GAS"
       },
       {
         "id": "p3",
-        "label": "Crate",
-        "frame": "crate",
-        "start": "CROW",
-        "goal": "CROW",
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "PURGE",
+        "goal": "PURGE",
         "rivets": [
-          1
+          0
         ]
       },
       {
         "id": "p4",
         "label": "Trophy",
         "frame": "trophy",
-        "start": "HART",
-        "goal": "HART"
+        "start": "BUMP",
+        "goal": "BUMP"
       }
     ]
   },
@@ -360,32 +360,32 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
         "id": "p1",
         "label": "Trophy",
         "frame": "trophy",
-        "start": "DARE",
-        "goal": "CARE"
-      },
-      {
-        "id": "p2",
-        "label": "Lamp",
-        "frame": "lamp",
-        "start": "ICE",
-        "goal": "DIE"
-      },
-      {
-        "id": "p3",
-        "label": "Laser",
-        "frame": "laser",
-        "start": "LAP",
-        "goal": "CAP"
-      },
-      {
-        "id": "p4",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "CAMP",
-        "goal": "LAMP",
+        "start": "PINT",
+        "goal": "PINK",
         "rivets": [
           2
         ]
+      },
+      {
+        "id": "p2",
+        "label": "Canvas",
+        "frame": "art",
+        "start": "HEAR",
+        "goal": "HART"
+      },
+      {
+        "id": "p3",
+        "label": "Clock",
+        "frame": "clock",
+        "start": "PLAN",
+        "goal": "LANE"
+      },
+      {
+        "id": "p4",
+        "label": "Watchdog",
+        "frame": "dog",
+        "start": "INK",
+        "goal": "PIN"
       }
     ]
   },
@@ -398,34 +398,34 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Crate",
-        "frame": "crate",
-        "start": "GONE",
-        "goal": "LONE"
-      },
-      {
-        "id": "p2",
-        "label": "Canvas",
-        "frame": "art",
-        "start": "RAIN",
-        "goal": "GAIN",
+        "label": "Laser",
+        "frame": "laser",
+        "start": "SEVEN",
+        "goal": "EVENT",
         "rivets": [
           2
         ]
       },
       {
+        "id": "p2",
+        "label": "Safe",
+        "frame": "safe",
+        "start": "AID",
+        "goal": "SAD"
+      },
+      {
         "id": "p3",
-        "label": "Trophy",
-        "frame": "trophy",
-        "start": "BONE",
-        "goal": "BORE"
+        "label": "Canvas",
+        "frame": "art",
+        "start": "BAT",
+        "goal": "BIT"
       },
       {
         "id": "p4",
-        "label": "Cart",
-        "frame": "cart",
-        "start": "LED",
-        "goal": "END"
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "PINT",
+        "goal": "PAIN"
       }
     ]
   },
@@ -440,22 +440,22 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
         "id": "p1",
         "label": "Trophy",
         "frame": "trophy",
-        "start": "RAID",
-        "goal": "PAID"
+        "start": "CHART",
+        "goal": "CHEAT"
       },
       {
         "id": "p2",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "PIPE",
-        "goal": "PIER"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "ALLEY",
+        "goal": "RALLY"
       },
       {
         "id": "p3",
-        "label": "Lamp",
-        "frame": "lamp",
-        "start": "BARN",
-        "goal": "BARN"
+        "label": "Watchdog",
+        "frame": "dog",
+        "start": "GRIP",
+        "goal": "GRIP"
       }
     ]
   },
@@ -470,22 +470,22 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
         "id": "p1",
         "label": "Safe",
         "frame": "safe",
-        "start": "DICE",
-        "goal": "NICE"
+        "start": "DIRE",
+        "goal": "DICE"
       },
       {
         "id": "p2",
-        "label": "Lamp",
-        "frame": "lamp",
-        "start": "LINE",
-        "goal": "LIVE"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "CABLE",
+        "goal": "TABLE"
       },
       {
         "id": "p3",
         "label": "Locker",
         "frame": "locker",
-        "start": "VICE",
-        "goal": "DICE"
+        "start": "TEASE",
+        "goal": "ERASE"
       }
     ]
   },
@@ -498,31 +498,31 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Locker",
-        "frame": "locker",
-        "start": "ICON",
-        "goal": "CORN"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "BUST",
+        "goal": "BUSS"
       },
       {
         "id": "p2",
-        "label": "Clock",
-        "frame": "clock",
-        "start": "CORN",
-        "goal": "COIN"
+        "label": "Laser",
+        "frame": "laser",
+        "start": "SCAR",
+        "goal": "CART"
       },
       {
         "id": "p3",
-        "label": "Trophy",
-        "frame": "trophy",
-        "start": "MELT",
-        "goal": "MET"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "THREAD",
+        "goal": "TREAD"
       },
       {
         "id": "p4",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "HOLY",
-        "goal": "HOLLY"
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "SACK",
+        "goal": "SHACK"
       }
     ]
   },
@@ -535,34 +535,34 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "DAMP",
-        "goal": "CAMP",
+        "label": "Canvas",
+        "frame": "art",
+        "start": "FAIR",
+        "goal": "HAIR",
         "rivets": [
-          3
+          2
         ]
       },
       {
         "id": "p2",
-        "label": "Crate",
-        "frame": "crate",
-        "start": "CARE",
-        "goal": "DARE"
+        "label": "Clock",
+        "frame": "clock",
+        "start": "HALL",
+        "goal": "BALL"
       },
       {
         "id": "p3",
-        "label": "Lamp",
-        "frame": "lamp",
-        "start": "DRIP",
-        "goal": "TRIP"
+        "label": "Trophy",
+        "frame": "trophy",
+        "start": "BEACH",
+        "goal": "LEACH"
       },
       {
         "id": "p4",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "TRIP",
-        "goal": "DRIP"
+        "label": "Crate",
+        "frame": "crate",
+        "start": "LEAST",
+        "goal": "FEAST"
       }
     ]
   },
@@ -575,31 +575,31 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Canvas",
-        "frame": "art",
-        "start": "GRIP",
-        "goal": "TRIP"
+        "label": "Crate",
+        "frame": "crate",
+        "start": "SHINE",
+        "goal": "SINCE"
       },
       {
         "id": "p2",
-        "label": "Crate",
-        "frame": "crate",
-        "start": "BOOT",
-        "goal": "BOOK"
+        "label": "Watchdog",
+        "frame": "dog",
+        "start": "ONCE",
+        "goal": "GONE"
       },
       {
         "id": "p3",
-        "label": "Safe",
-        "frame": "safe",
-        "start": "STARK",
-        "goal": "STARE"
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "GRAVE",
+        "goal": "RAVEN"
       },
       {
         "id": "p4",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "SINE",
-        "goal": "SIGN"
+        "label": "Locker",
+        "frame": "locker",
+        "start": "EARN",
+        "goal": "HEAR"
       }
     ]
   },
@@ -612,34 +612,34 @@ export const CAMPAIGN_LEVELS: LevelDef[] = [
     "props": [
       {
         "id": "p1",
-        "label": "Clock",
-        "frame": "clock",
-        "start": "LOAD",
-        "goal": "LAND"
+        "label": "Trophy",
+        "frame": "trophy",
+        "start": "RASH",
+        "goal": "HASH"
       },
       {
         "id": "p2",
-        "label": "Cart",
-        "frame": "cart",
-        "start": "BEND",
-        "goal": "BRED",
+        "label": "Lamp",
+        "frame": "lamp",
+        "start": "SHORE",
+        "goal": "SWORE",
         "rivets": [
-          0
+          3
         ]
       },
       {
         "id": "p3",
-        "label": "Watchdog",
-        "frame": "dog",
-        "start": "CORN",
-        "goal": "ICON"
+        "label": "Cart",
+        "frame": "cart",
+        "start": "WHAT",
+        "goal": "HALT"
       },
       {
         "id": "p4",
-        "label": "Trophy",
-        "frame": "trophy",
-        "start": "RIOT",
-        "goal": "ROOT"
+        "label": "Clock",
+        "frame": "clock",
+        "start": "FLAME",
+        "goal": "FRAME"
       }
     ]
   }

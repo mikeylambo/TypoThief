@@ -3,13 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { crc32, deflateRawSync } from "node:zlib";
 import { build } from "vite";
+import { YOUTUBE_SDK_SCRIPT } from "./youtube-html.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..");
 const DIST_YT_DIR = path.join(REPO_ROOT, "dist-yt");
 const ZIP_PATH = path.join(REPO_ROOT, "typo-thief-youtube.zip");
 const MAX_ZIP_BYTES = 300 * 1024;
-const YOUTUBE_SDK_TAG = '<script src="https://www.youtube.com/game_api/v1"></script>';
 
 /**
  * Recursively collect all files inside `rootDir` with POSIX paths relative to `rootDir`.
@@ -123,7 +123,7 @@ function verifyBuiltHtml(htmlPath) {
   const html = fs.readFileSync(htmlPath, "utf8");
   const headOpenIdx = html.search(/<head\b[^>]*>/i);
   const headCloseIdx = html.search(/<\/head>/i);
-  const sdkIdx = html.indexOf(YOUTUBE_SDK_TAG);
+  const sdkIdx = html.indexOf(YOUTUBE_SDK_SCRIPT);
   const moduleIdx = html.search(/<script\b[^>]*\btype\s*=\s*["']module["']/i);
 
   if (sdkIdx === -1) {
