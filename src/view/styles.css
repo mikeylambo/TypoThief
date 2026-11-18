@@ -172,6 +172,11 @@ body {
   gap: 6px;
 }
 
+.hud-row--bottom {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
 .hud-title-group {
   display: flex;
   align-items: center;
@@ -929,6 +934,16 @@ body {
 @keyframes handBob {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(-6px); }
+}
+
+/* Compact horizontal fit for narrow 350px-400px mobile viewports */
+@media (max-width: 400px) {
+  .btn-kbd {
+    display: none;
+  }
+  .hud-row--bottom {
+    gap: 4px;
+  }
 }
 
 /* Compact vertical fit for short mobile viewports */

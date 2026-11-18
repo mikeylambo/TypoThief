@@ -1,11 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { CAMPAIGN_LEVELS } from "../src/content/levels.ts";
-import { defaultSave } from "../src/meta/save.ts";
+import { defaultSave, isDailyUnlocked, recordLevelClear } from "../src/meta/save.ts";
 import { loadDict } from "../src/sim/dict.ts";
 import { createGameState, stealLetter } from "../src/sim/rules.ts";
 import type { LevelDef } from "../src/sim/types.ts";
 import {
+  DragClickGuard,
   computeNeutralPreviewWord,
   getDailyTwistCallout,
   getFtueTarget,
@@ -73,7 +74,7 @@ describe("BoardView pure UI helpers", () => {
     assert.equal(getFtueTarget("daily", 1, save, state), null);
   });
 
-  it("triggers Daily Heist early-twist callouts only before campaign unlock and once per twist", () => {
+  it("triggers Daily Heist early-twist callouts after Level 6 unlocks Daily and hides after clearing Ch2/Ch3 or seeing once", () => {
     const rivetDaily: LevelDef = {
       id: 1093,
       chapter: 2,
@@ -91,18 +92,21 @@ describe("BoardView pure UI helpers", () => {
       props: [{ id: "p1", label: "Lamp", frame: "lamp", start: "CHAR", goal: "CARD" }],
     };
 
-    const ch1ClearSave = { ...defaultSave(), highestUnlocked: 6 };
-    assert.deepEqual(getDailyTwistCallout(rivetDaily, ch1ClearSave), {
+    // Realistic progression: player clears Level 6 (unlocks Daily, highestUnlocked becomes 7, level 7 not cleared yet)
+    const justUnlockedDaily = recordLevelClear(defaultSave(), 6, 3, 6);
+    assert.equal(isDailyUnlocked(justUnlockedDaily), true);
+    assert.equal(justUnlockedDaily.highestUnlocked, 7);
+    assert.deepEqual(getDailyTwistCallout(rivetDaily, justUnlockedDaily), {
       rivets: true,
       twoSlot: false,
     });
-    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, ch1ClearSave), {
+    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, justUnlockedDaily), {
       rivets: false,
       twoSlot: true,
     });
 
     const seenRivetSave = {
-      ...ch1ClearSave,
+      ...justUnlockedDaily,
       seenDailyTwists: { rivets: true, twoSlot: false },
     };
     assert.deepEqual(getDailyTwistCallout(rivetDaily, seenRivetSave), {
@@ -110,16 +114,54 @@ describe("BoardView pure UI helpers", () => {
       twoSlot: false,
     });
 
-    const ch2Save = { ...defaultSave(), highestUnlocked: 7 };
-    assert.deepEqual(getDailyTwistCallout(rivetDaily, ch2Save), {
+    // Once Level 7 (first Ch2 rivet level) is cleared, rivet callout no longer triggers
+    const clearedL7Save = recordLevelClear(justUnlockedDaily, 7, 3, 4);
+    assert.deepEqual(getDailyTwistCallout(rivetDaily, clearedL7Save), {
       rivets: false,
       twoSlot: false,
+    });
+    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, clearedL7Save), {
+      rivets: false,
+      twoSlot: true,
     });
 
-    const ch3Save = { ...defaultSave(), highestUnlocked: 13 };
-    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, ch3Save), {
+    // Clearing Level 12 unlocks Level 13 (twoSlot not yet cleared -> still triggers)
+    const clearedL12Save = recordLevelClear(clearedL7Save, 12, 3, 8);
+    assert.equal(clearedL12Save.highestUnlocked, 13);
+    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, clearedL12Save), {
+      rivets: false,
+      twoSlot: true,
+    });
+
+    // Once Level 13 (first Ch3 2-slot level) is cleared, twoSlot callout no longer triggers
+    const clearedL13Save = recordLevelClear(clearedL12Save, 13, 3, 4);
+    assert.deepEqual(getDailyTwistCallout(twoSlotDaily, clearedL13Save), {
       rivets: false,
       twoSlot: false,
     });
+  });
+
+  it("clears drag click suppression on render, click consumption, or after drag release outside slot", async () => {
+    const guard = new DragClickGuard();
+
+    // Short tap (never marked dragging) does not suppress click
+    assert.equal(guard.consumeClick(), false);
+
+    // Dragging then releasing over the same button suppresses the immediate click and clears
+    guard.markDragging();
+    guard.releaseAfterDrag();
+    assert.equal(guard.consumeClick(), true);
+    assert.equal(guard.consumeClick(), false);
+
+    // Dragging then releasing outside the slot (no click event fires) auto-clears on next tick
+    guard.markDragging();
+    guard.releaseAfterDrag();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(guard.consumeClick(), false);
+
+    // Explicit reset (called by BoardView.render) clears immediately
+    guard.markDragging();
+    guard.reset();
+    assert.equal(guard.consumeClick(), false);
   });
 });

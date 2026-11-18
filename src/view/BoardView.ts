@@ -101,12 +101,57 @@ export function getDailyTwistCallout(
   const hasRivets = level.props.some((p) => (p.rivets?.length ?? 0) > 0);
   return {
     rivets:
-      hasRivets && !save.seenDailyTwists.rivets && save.highestUnlocked < 7,
+      hasRivets &&
+      !save.seenDailyTwists.rivets &&
+      !save.levels[7] &&
+      save.highestUnlocked <= 7,
     twoSlot:
       level.pocketCap === 2 &&
       !save.seenDailyTwists.twoSlot &&
-      save.highestUnlocked < 13,
+      !save.levels[13] &&
+      save.highestUnlocked <= 13,
   };
+}
+
+/**
+ * Coordinates drag-release click suppression so dragging out of a Thief Bag slot
+ * never leaves future slot taps swallowed when no DOM click fires on release.
+ */
+export class DragClickGuard {
+  suppressed = false;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  markDragging(): void {
+    this.cancelTimer();
+    this.suppressed = true;
+  }
+
+  releaseAfterDrag(): void {
+    if (!this.suppressed) return;
+    this.cancelTimer();
+    this.timer = setTimeout(() => {
+      this.suppressed = false;
+      this.timer = null;
+    }, 0);
+  }
+
+  consumeClick(): boolean {
+    if (!this.suppressed) return false;
+    this.reset();
+    return true;
+  }
+
+  reset(): void {
+    this.cancelTimer();
+    this.suppressed = false;
+  }
+
+  private cancelTimer(): void {
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  }
 }
 
 /**
@@ -190,7 +235,7 @@ export class BoardView {
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private shakeTimer: ReturnType<typeof setTimeout> | null = null;
   private dragCleanup: (() => void) | null = null;
-  private suppressNextBagClick = false;
+  private readonly dragClickGuard = new DragClickGuard();
 
   constructor(handlers: BoardHandlers) {
     this.handlers = handlers;
@@ -237,6 +282,7 @@ export class BoardView {
 
   render(ctx: BoardRenderContext): void {
     this.cancelDrag();
+    this.dragClickGuard.reset();
     this.lastCtx = ctx;
 
     const { mode, level, state, save, dict, hintMove, twistCallout, winStars } = ctx;
@@ -568,8 +614,7 @@ export class BoardView {
         );
 
         slotBtn.addEventListener("click", () => {
-          if (this.suppressNextBagClick) {
-            this.suppressNextBagClick = false;
+          if (this.dragClickGuard.consumeClick()) {
             return;
           }
           this.handlers.onToggleDropSlot(slotIdx);
@@ -664,7 +709,7 @@ export class BoardView {
       if (!dragging) {
         if (Math.hypot(dx, dy) < 8) return;
         dragging = true;
-        this.suppressNextBagClick = true;
+        this.dragClickGuard.markDragging();
         ghostEl = document.createElement("div");
         ghostEl.className = "drag-ghost";
         ghostEl.textContent = letter;
@@ -690,6 +735,9 @@ export class BoardView {
       const wasDragging = dragging;
       const dropTarget = activeTarget;
       cleanup();
+      if (wasDragging) {
+        this.dragClickGuard.releaseAfterDrag();
+      }
       if (wasDragging && dropTarget) {
         this.handlers.onDrop(dropTarget.propIdx, dropTarget.pos, slotIdx);
       }
@@ -697,7 +745,11 @@ export class BoardView {
 
     const onCancel = (cancelEvent: PointerEvent) => {
       if (cancelEvent.pointerId !== pointerId) return;
+      const wasDragging = dragging;
       cleanup();
+      if (wasDragging) {
+        this.dragClickGuard.releaseAfterDrag();
+      }
     };
 
     window.addEventListener("pointermove", onMove);
